@@ -103,6 +103,29 @@ export default [
     },
   },
 
+  // ── 配置文件（项目根目录的 TS 配置文件）────────────────────
+  {
+    files: ['*.config.ts', '*.config.mjs'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        sourceType: 'module',
+      },
+      globals: {
+        process: 'readonly',
+        __dirname: 'readonly',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
+    rules: {
+      ...tsPlugin.configs['recommended'].rules,
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'error',
+    },
+  },
+
   // ── Prettier 兼容层（必须放最后）─────────────────────────
   // 关闭 ESLint 中所有与格式相关的规则，把格式全权交给 Prettier
   // 放最后是因为 ESLint 配置数组后面的规则会覆盖前面的
