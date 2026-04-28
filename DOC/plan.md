@@ -21,30 +21,62 @@
 
 ## 项目结构
 
+核心思路：模块化、关注点分离、可维护、易扩展。按照功能域对模块进行划分，而非文件类型（Feature-Sliced Design）划分。
+
+将这个项目分成3层：
+
+1. 主进程：负责AI调用和工具执行，拥有完整的nodejs权限；
+2. preload：唯一安全桥梁，用contextBridge精确把控渲染进程可用的接口，避免恶意代码通过污染原型链的方式破坏主进程代码；
+3. 渲染进程：只做React UI。
+
 ```
 electron-ai-demo/
 ├── src/
-│   ├── main/
-│   │   ├── index.ts          # 主进程入口，窗口创建
-│   │   └── ipc.ts            # 所有 ipcMain 处理器
+│   ├── shared/                        # 跨进程共享（主进程/preload/渲染进程均可引用）
+│   │   ├── constants/
+│   │   │   └── ipc-channels.ts        # 集中管理 IPC 频道名，消除魔法字符串
+│   │   └── types/
+│   │       ├── message.ts             # Message、ToolCall 等核心数据类型
+│   │       ├── ipc.ts                 # IPC payload 类型
+│   │       └── index.ts              # barrel export
+│   ├── main/                          # 主进程（Node.js 完整权限）
+│   │   ├── index.ts                   # 入口：窗口创建，调用 registerAll()
+│   │   ├── ai/
+│   │   │   ├── client.ts              # OpenAI 单例（懒加载，读取环境变量）
+│   │   │   └── loop.ts                # ReAct 循环（纯业务逻辑，无 IPC 耦合）
+│   │   ├── ipc/
+│   │   │   ├── index.ts               # IPC 注册聚合器：registerAll()
+│   │   │   └── chat.ts                # Chat IPC 处理器（IPC 胶水层）
+│   │   └── tools/
+│   │       ├── registry.ts            # 工具注册表（单一扩展点）
+│   │       ├── executor.ts            # 工具调度器：executeTool(name, args)
+│   │       ├── index.ts               # barrel export
+│   │       └── builtin/
+│   │           ├── time.ts            # 内置工具：获取当前时间
+│   │           ├── calculate.ts       # 内置工具：数学计算
+│   │           └── sysinfo.ts         # 内置工具：系统信息
 │   ├── preload/
-│   │   └── index.ts          # contextBridge 暴露 API
+│   │   ├── index.ts                   # contextBridge 安全桥梁
+│   │   └── index.d.ts                 # ElectronAPI 类型声明
 │   └── renderer/
-│       ├── src/
-│       │   ├── App.tsx
-│       │   ├── main.tsx
-│       │   ├── components/
-│       │   │   ├── ChatPanel.tsx
-│       │   │   ├── MessageList.tsx
-│       │   │   ├── MessageItem.tsx
-│       │   │   └── InputBar.tsx
-│       │   ├── hooks/
-│       │   │   └── useStreamChat.ts
-│       │   ├── store/
-│       │   │   └── chatStore.ts
-│       │   └── types/
-│       │       └── index.ts
-│       └── index.html
+│       ├── index.html
+│       └── src/
+│           ├── App.tsx                # 根组件
+│           ├── main.tsx               # 渲染进程入口
+│           ├── index.css
+│           └── features/
+│               └── chat/              # Chat 功能域（Feature-Sliced Design）
+│                   ├── components/
+│                   │   ├── ChatPanel.tsx
+│                   │   ├── MessageList.tsx
+│                   │   ├── MessageItem.tsx
+│                   │   ├── InputBar.tsx
+│                   │   └── ToolCallBubble.tsx
+│                   ├── hooks/
+│                   │   └── useStreamChat.ts
+│                   ├── store/
+│                   │   └── chatStore.ts
+│                   └── index.ts       # 功能域公共 API（barrel export）
 ├── electron.vite.config.ts
 ├── package.json
 └── tsconfig.json

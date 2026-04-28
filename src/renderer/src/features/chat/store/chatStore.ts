@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Message, ToolCall } from '../types'
+import { Message, ToolCall } from '@shared/types'
 
 interface ChatStore {
   messages: Message[]
@@ -21,10 +21,9 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   addMessage: (msg) =>
     set((state) => ({
-      messages: [...state.messages, { ...msg, id: genId() }]
+      messages: [...state.messages, { ...msg, id: genId() }],
     })),
 
-  // 流式追加：每次 chunk 到来时追加到最后一条 assistant 消息的 content
   updateLastAssistantMessage: (delta) =>
     set((state) => {
       const msgs = [...state.messages]
@@ -35,7 +34,6 @@ export const useChatStore = create<ChatStore>((set) => ({
       return { messages: msgs }
     }),
 
-  // 在最后一条 assistant 消息上挂载工具调用列表
   appendToolCallToLast: (toolCalls) =>
     set((state) => {
       const msgs = [...state.messages]
@@ -49,7 +47,6 @@ export const useChatStore = create<ChatStore>((set) => ({
       return { messages: msgs }
     }),
 
-  // 通过 tool call id 找到对应条目并填入结果
   updateToolCallResult: (id, result) =>
     set((state) => {
       const msgs = state.messages.map((msg) => {
@@ -61,5 +58,5 @@ export const useChatStore = create<ChatStore>((set) => ({
     }),
 
   clearMessages: () => set({ messages: [] }),
-  setSystemPrompt: (prompt) => set({ systemPrompt: prompt })
+  setSystemPrompt: (prompt) => set({ systemPrompt: prompt }),
 }))

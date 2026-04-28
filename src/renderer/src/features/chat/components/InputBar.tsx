@@ -49,15 +49,12 @@ export default function InputBar() {
           {streaming ? (
             <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
             </svg>
           )}
         </button>
       </div>
-      <p className="text-xs text-gray-600 mt-1.5 text-center select-none">
-        Enter 发送 · Shift+Enter 换行
-      </p>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ToolCall } from '../types'
+import { ToolCall } from '@shared/types'
 
 interface Props {
   toolCalls: ToolCall[]
@@ -14,12 +14,10 @@ const TOOL_ICONS: Record<string, string> = {
 function ToolCallCard({ tc }: { tc: ToolCall }) {
   const [expanded, setExpanded] = useState(false)
   const icon = TOOL_ICONS[tc.name] ?? '🔧'
-  const hasResult = tc.result !== undefined
-  const isLoading = !hasResult
+  const isLoading = tc.result === undefined
 
   return (
     <div className="rounded-lg border border-amber-800/40 bg-amber-950/30 text-xs overflow-hidden">
-      {/* Header row — click to expand/collapse */}
       <button
         onClick={() => setExpanded((prev) => !prev)}
         className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-amber-900/20 transition-colors"
@@ -36,20 +34,14 @@ function ToolCallCard({ tc }: { tc: ToolCall }) {
         </span>
       </button>
 
-      {/* Expanded detail */}
       {expanded && (
         <div className="border-t border-amber-800/30 divide-y divide-amber-800/20">
-          {/* Args section */}
           <div className="px-3 py-2">
             <div className="text-gray-500 mb-1 uppercase tracking-wider text-[10px]">Args</div>
             <pre className="text-gray-300 font-mono overflow-x-auto whitespace-pre-wrap break-all">
-              {Object.keys(tc.args).length === 0
-                ? '{}'
-                : JSON.stringify(tc.args, null, 2)}
+              {Object.keys(tc.args).length === 0 ? '{}' : JSON.stringify(tc.args, null, 2)}
             </pre>
           </div>
-
-          {/* Result section */}
           <div className="px-3 py-2">
             <div className="text-gray-500 mb-1 uppercase tracking-wider text-[10px]">Result</div>
             {isLoading ? (

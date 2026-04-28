@@ -1,4 +1,6 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
+import { CHANNELS } from '@shared/constants/ipc-channels'
+import type { ToolCallPayload, ToolResultPayload } from '@shared/types'
 
 /**
  * Preload — 安全桥梁
@@ -10,36 +12,36 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
  */
 contextBridge.exposeInMainWorld('electronAPI', {
   startStream: (messages: unknown[]): void => {
-    ipcRenderer.send('chat:stream:start', messages)
+    ipcRenderer.send(CHANNELS.CHAT_STREAM_START, messages)
   },
 
   onChunk: (cb: (delta: string) => void): (() => void) => {
     const handler = (_: IpcRendererEvent, delta: string): void => cb(delta)
-    ipcRenderer.on('chat:stream:chunk', handler)
-    return () => ipcRenderer.removeListener('chat:stream:chunk', handler)
+    ipcRenderer.on(CHANNELS.CHAT_STREAM_CHUNK, handler)
+    return () => ipcRenderer.removeListener(CHANNELS.CHAT_STREAM_CHUNK, handler)
   },
 
   onDone: (cb: () => void): (() => void) => {
     const handler = (): void => cb()
-    ipcRenderer.once('chat:stream:done', handler)
-    return () => ipcRenderer.removeListener('chat:stream:done', handler)
+    ipcRenderer.once(CHANNELS.CHAT_STREAM_DONE, handler)
+    return () => ipcRenderer.removeListener(CHANNELS.CHAT_STREAM_DONE, handler)
   },
 
   onError: (cb: (message: string) => void): (() => void) => {
     const handler = (_: IpcRendererEvent, message: string): void => cb(message)
-    ipcRenderer.once('chat:stream:error', handler)
-    return () => ipcRenderer.removeListener('chat:stream:error', handler)
+    ipcRenderer.once(CHANNELS.CHAT_STREAM_ERROR, handler)
+    return () => ipcRenderer.removeListener(CHANNELS.CHAT_STREAM_ERROR, handler)
   },
 
-  onToolCall: (cb: (payload: { id: string; name: string; args: Record<string, unknown> }) => void): (() => void) => {
-    const handler = (_: IpcRendererEvent, payload: { id: string; name: string; args: Record<string, unknown> }): void => cb(payload)
-    ipcRenderer.on('chat:stream:tool-call', handler)
-    return () => ipcRenderer.removeListener('chat:stream:tool-call', handler)
+  onToolCall: (cb: (payload: ToolCallPayload) => void): (() => void) => {
+    const handler = (_: IpcRendererEvent, payload: ToolCallPayload): void => cb(payload)
+    ipcRenderer.on(CHANNELS.CHAT_TOOL_CALL, handler)
+    return () => ipcRenderer.removeListener(CHANNELS.CHAT_TOOL_CALL, handler)
   },
 
-  onToolResult: (cb: (payload: { id: string; result: string }) => void): (() => void) => {
-    const handler = (_: IpcRendererEvent, payload: { id: string; result: string }): void => cb(payload)
-    ipcRenderer.on('chat:stream:tool-result', handler)
-    return () => ipcRenderer.removeListener('chat:stream:tool-result', handler)
+  onToolResult: (cb: (payload: ToolResultPayload) => void): (() => void) => {
+    const handler = (_: IpcRendererEvent, payload: ToolResultPayload): void => cb(payload)
+    ipcRenderer.on(CHANNELS.CHAT_TOOL_RESULT, handler)
+    return () => ipcRenderer.removeListener(CHANNELS.CHAT_TOOL_RESULT, handler)
   },
 })

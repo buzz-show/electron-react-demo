@@ -1,13 +1,14 @@
 // 为渲染进程提供 window.electronAPI 的 TypeScript 类型
 // 此文件被 tsconfig.web.json 包含
+import type { ToolCallPayload, ToolResultPayload } from '@shared/types'
 
 export interface ElectronAPI {
   startStream: (messages: unknown[]) => void
   onChunk: (cb: (delta: string) => void) => () => void
   onDone: (cb: () => void) => () => void
   onError: (cb: (message: string) => void) => () => void
-  onToolCall: (cb: (payload: { id: string; name: string; args: Record<string, unknown> }) => void) => () => void
-  onToolResult: (cb: (payload: { id: string; result: string }) => void) => () => void
+  onToolCall: (cb: (payload: ToolCallPayload) => void) => () => void
+  onToolResult: (cb: (payload: ToolResultPayload) => void) => () => void
 }
 
 declare global {

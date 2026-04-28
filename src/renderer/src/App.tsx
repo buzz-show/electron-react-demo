@@ -1,4 +1,4 @@
-import ChatPanel from './components/ChatPanel'
+import { ChatPanel } from './features/chat'
 
 export default function App() {
   return (

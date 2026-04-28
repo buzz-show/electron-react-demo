@@ -11,54 +11,54 @@ export function useStreamChat() {
     messages,
     systemPrompt,
   } = useChatStore()
-  // 保存所有监听器的清理函数，防止内存泄漏
   const cleanupRef = useRef<(() => void)[]>([])
 
   const sendMessage = useCallback(
     (userInput: string) => {
       if (!userInput.trim() || streaming) return
 
-      // 1. 立即渲染用户消息和空 assistant 占位（打字机从这里开始填充）
       addMessage({ role: 'user', content: userInput })
       addMessage({ role: 'assistant', content: '' })
       setStreaming(true)
 
-      // 2. 注册监听器，每个都返回取消函数
       const offChunk = window.electronAPI.onChunk((delta) => {
         updateLastAssistantMessage(delta)
       })
-
       const offDone = window.electronAPI.onDone(() => {
         setStreaming(false)
         cleanupRef.current.forEach((fn) => fn())
         cleanupRef.current = []
       })
-
       const offError = window.electronAPI.onError((msg) => {
         updateLastAssistantMessage(`\n\n> **错误：** ${msg}`)
         setStreaming(false)
         cleanupRef.current.forEach((fn) => fn())
         cleanupRef.current = []
       })
-
       const offToolCall = window.electronAPI.onToolCall(({ id, name, args }) => {
         appendToolCallToLast([{ id, name, args }])
       })
-
       const offToolResult = window.electronAPI.onToolResult(({ id, result }) => {
         updateToolCallResult(id, result)
       })
 
       cleanupRef.current = [offChunk, offDone, offError, offToolCall, offToolResult]
 
-      // 3. 发送请求：system prompt + 历史上下文（不含刚 add 的两条） + 当前输入
       window.electronAPI.startStream([
         { role: 'system', content: systemPrompt },
         ...messages.map(({ role, content }) => ({ role, content })),
-        { role: 'user', content: userInput }
+        { role: 'user', content: userInput },
       ])
     },
-    [messages, systemPrompt, streaming, addMessage, updateLastAssistantMessage, appendToolCallToLast, updateToolCallResult]
+    [
+      messages,
+      systemPrompt,
+      streaming,
+      addMessage,
+      updateLastAssistantMessage,
+      appendToolCallToLast,
+      updateToolCallResult,
+    ]
   )
 
   return { sendMessage, streaming }
