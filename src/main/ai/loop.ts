@@ -3,6 +3,7 @@ import OpenAI from 'openai'
 import { CHANNELS } from '@shared/constants/ipc-channels'
 
 import { TOOL_DEFINITIONS, executeTool } from '../tools'
+import { getConfig } from '../config'
 
 import { getOpenAI } from './client'
 
@@ -28,7 +29,7 @@ export async function runReActLoop(event: IpcMainEvent, messages: Messages): Pro
   const client = getOpenAI()
 
   const stream = await client.chat.completions.create({
-    model: 'qwen3.5-35b-a3b',
+    model: getConfig().model,
     messages,
     tools: TOOL_DEFINITIONS,
     tool_choice: 'auto',

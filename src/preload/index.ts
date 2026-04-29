@@ -1,6 +1,11 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import { CHANNELS } from '@shared/constants/ipc-channels'
-import type { ToolCallPayload, ToolResultPayload } from '@shared/types'
+import type {
+  ToolCallPayload,
+  ToolResultPayload,
+  SettingsView,
+  SettingsSavePayload,
+} from '@shared/types'
 
 /**
  * Preload — 安全桥梁
@@ -43,5 +48,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const handler = (_: IpcRendererEvent, payload: ToolResultPayload): void => cb(payload)
     ipcRenderer.on(CHANNELS.CHAT_TOOL_RESULT, handler)
     return () => ipcRenderer.removeListener(CHANNELS.CHAT_TOOL_RESULT, handler)
+  },
+
+  getSettings: (): Promise<SettingsView> => {
+    return ipcRenderer.invoke(CHANNELS.SETTINGS_GET)
+  },
+
+  saveSettings: (payload: SettingsSavePayload): Promise<void> => {
+    return ipcRenderer.invoke(CHANNELS.SETTINGS_SAVE, payload)
   },
 })

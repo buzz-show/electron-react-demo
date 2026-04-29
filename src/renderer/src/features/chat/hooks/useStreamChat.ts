@@ -31,7 +31,11 @@ export function useStreamChat() {
         cleanupRef.current = []
       })
       const offError = window.electronAPI.onError(msg => {
-        updateLastAssistantMessage(`\n\n> **错误：** ${msg}`)
+        const isNoApiKey = msg.includes('API Key 未配置') || msg.includes('API Key')
+        const displayMsg = isNoApiKey
+          ? `\n\n> **API Key 未配置。** 请点击右上角 ⚙ 设置图标，填写 API Key 后重试。`
+          : `\n\n> **错误：** ${msg}`
+        updateLastAssistantMessage(displayMsg)
         setStreaming(false)
         cleanupRef.current.forEach(fn => fn())
         cleanupRef.current = []

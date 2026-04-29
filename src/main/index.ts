@@ -6,8 +6,12 @@ import { config as dotenvConfig } from 'dotenv'
 
 import { registerAll } from './ipc/index'
 
-// 加载 .env 文件（开发环境）
-dotenvConfig({ path: resolve(process.cwd(), '.env') })
+// 开发模式回退：从项目根目录的 .env 读取配置
+// 生产模式下此文件不存在，dotenv 静默忽略（silent: true 等价于 path 不存在时不报错）
+// 实际配置优先从 userData/config.json 读取（见 src/main/config/index.ts）
+if (process.env['NODE_ENV'] !== 'production') {
+  dotenvConfig({ path: resolve(process.cwd(), '.env') })
+}
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({

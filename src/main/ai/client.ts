@@ -1,22 +1,28 @@
 import OpenAI from 'openai'
 
+import { getConfig } from '../config'
+
 /**
  * OpenAI 客户端懒加载单例
  *
- * 首次调用时读取环境变量，确保 dotenv 已在 index.ts 中加载完毕。
- * 支持 OPENAI_API_BASE_URL 覆盖（兼容私有部署、国内镜像）。
+ * 首次调用时从 userData/config.json 读取配置（dev 模式自动回退到 .env）。
+ * 调用 resetClient() 可清除单例，下次请求时重新读取最新配置（设置保存后使用）。
  */
 let client: OpenAI | null = null
 
 export function getOpenAI(): OpenAI {
   if (!client) {
-    const apiKey = process.env['OPENAI_API_KEY']
+    const { apiKey, baseURL } = getConfig()
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY 未设置。请将 .env.example 复制为 .env 并填入你的 API Key。')
+      throw new Error('API Key 未配置。请点击右上角设置图标，填写 API Key 后重试。')
     }
-    const baseURL = process.env['OPENAI_API_BASE_URL']
-    if (baseURL) console.log('Using custom OpenAI base URL:', baseURL)
-    client = new OpenAI({ apiKey, baseURL })
+    if (baseURL) console.log('[ai] Using custom base URL:', baseURL)
+    client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   }
   return client
+}
+
+/** 清除客户端单例，下次调用 getOpenAI() 时重新读取配置 */
+export function resetClient(): void {
+  client = null
 }
